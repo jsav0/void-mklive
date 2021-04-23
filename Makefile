@@ -63,7 +63,12 @@ platformfs-all-print:
 	@echo $(ALL_PLATFORMFS) | sed "s: :\n:g"
 
 void-%-PLATFORMFS-$(DATECODE).tar.xz: $(SCRIPTS)
-	$(SUDO) ./mkplatformfs.sh $(XBPS_REPOSITORY) -x $(COMPRESSOR_THREADS) $* void-$(shell ./lib.sh platform2arch $*)-ROOTFS-$(DATECODE).tar.xz
+	# this has been modified to include LXD and more in the core image
+	# the new default image will have root and user (void) passwords disabled and sudo will be replaced with doas.
+	# The only login permitted will be via ssh if your pubkey is available at /root/.ssh/id_ed25519.pub when the image is created.
+	# Otherwise, tough luck. I didn't write a case to handle anything else yet.
+	# When booted, the image will set its hostname based on the device's serial number, grab an IP via DHCP enable ssh for root and void. 
+	$(SUDO) ./mkplatformfs.sh $(XBPS_REPOSITORY) -p 'rpi-kernel-headers zfs lxd opendoas' -k 'post-script.sh' -x $(COMPRESSOR_THREADS) $* void-$(shell ./lib.sh platform2arch $*)-ROOTFS-$(DATECODE).tar.xz
 
 images-all: platformfs-all images-all-sbc images-all-cloud
 
